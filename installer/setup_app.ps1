@@ -193,8 +193,7 @@ if (-not $ollamaRunning) {
 # --------------------------------------
 
 Write-Host ""
-Write-Host "Downloading AI model..."
-Write-Host "This may take several minutes."
+Write-Host "Downloading ultra-fast AI model (qwen2.5:0.5b)..."
 
 & $OllamaExe pull qwen2.5:0.5b
 

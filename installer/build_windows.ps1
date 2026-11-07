@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $AppDir = Split-Path -Parent $PSScriptRoot
 $RequiredFiles = @(
-    "ai.py", "app.py", "budget.py", "bookkeeping.py", "config.py", "desktop_app.py",
+    "ai.py", "app.py", "budget.csv", "budget.py", "bookkeeping.py", "config.py", "desktop_app.py",
     "quickbooks.py", "shopping_api.py", "requirements.txt", "secure_storage.py", "start_budget_ai.bat"
 )
 foreach ($File in $RequiredFiles) {

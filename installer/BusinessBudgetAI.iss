@@ -1,5 +1,5 @@
 #define MyAppName "Business Budget AI"
-#define MyAppVersion "2.0.0"
+#define MyAppVersion "3.0.0"
 #define MyAppPublisher "Business Budget AI"
 
 [Setup]
@@ -20,12 +20,13 @@ SolidCompression=yes
 WizardStyle=modern
 
 PrivilegesRequired=admin
-ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 
 [Files]
 Source: "..\ai.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\app.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\budget.csv"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\budget.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\config.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\desktop_app.py"; DestDir: "{app}"; Flags: ignoreversion
