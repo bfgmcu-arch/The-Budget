@@ -1,0 +1,13 @@
+Category,Type,Budget,Actual
+Sales,Revenue,50000,53420
+Online Sales,Revenue,15000,14100
+Services,Revenue,12000,13500
+Rent,Expense,3000,3000
+Payroll,Expense,12000,12450
+Utilities,Expense,800,730
+Marketing,Expense,2000,2450
+Inventory,Expense,7000,6400
+Insurance,Expense,900,900
+Software,Expense,450,410
+Vehicle,Expense,1000,1325
+Office Supplies,Expense,600,350

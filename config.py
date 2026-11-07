@@ -1,0 +1,11 @@
+MODEL_NAME = "qwen2.5:0.5b"
+
+BUSINESS_NAME = "My Business"
+
+CURRENCY = "$"
+
+WARNING_PERCENT = 90
+
+OVER_BUDGET_COLOR = "#ff4b4b"
+
+UNDER_BUDGET_COLOR = "#00cc66"
