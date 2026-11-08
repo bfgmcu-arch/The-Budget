@@ -10,7 +10,7 @@ from xml.etree import ElementTree
 
 import ollama
 from config import MODEL_NAME
-from shopping_api import ShoppingApiError, find_cheaper_offers, load_api_key, search_product_catalog
+from shopping_api import ShoppingApiError, expand_search_query, find_cheaper_offers, load_api_key, lookup_unknown_term_web, search_product_catalog
 from secure_storage import read_file as read_protected_file, write_file as write_protected_file
 
 import threading
@@ -104,7 +104,10 @@ _CHAT_SEARCH_TRIGGER_PATTERN = re.compile(
     r"search\s+(?:for\s+)?(?:cheaper|prices?|suppliers?|options?|listings?)|"
     r"how\s+much\s+(?:does|do|is|are)\s+.+?\s+cost|"
     r"price\s+(?:of|for|check|comparison)|compare\s+prices?\s+(?:for|on)|"
-    r"look\s+up\s+(?:prices?|suppliers?|listings?)\s+(?:for|on))\b",
+    r"look\s+up\s+(?:prices?|suppliers?|listings?)\s+(?:for|on)|"
+    r"what\s+(?:is|are)\s+[a-z0-9]|"
+    r"(?:alternatives?|substitutes?|suppliers?|vendors?)\s+(?:for|to)\s+[a-z0-9]|"
+    r"(?:save|cut\s+costs?|reduce\s+spending)\s+on\s+[a-z0-9])\b",
     re.IGNORECASE
 )
 _CHAT_QUERY_NOISE_WORDS = frozenset({
@@ -238,39 +241,81 @@ def _product_search_queries(product, requirements, region):
     ]
 
 
+_GENERIC_BUDGET_CHAT_WORDS = frozenset({
+    "about", "actual", "actuals", "advice", "analyze", "budget", "budgeted", "business",
+    "categories", "category", "cash", "change", "company", "cut", "cutting", "data",
+    "department", "difference", "dollar", "dollars", "earn", "earned", "expense",
+    "expenses", "financial", "flow", "forecast", "grow", "growth", "health", "help",
+    "high", "highest", "improve", "income", "increase", "line", "lines", "loss", "make",
+    "margin", "marketing", "meaning", "money", "month", "monthly", "most", "net", "next",
+    "number", "numbers", "operating", "overall", "over", "overspend", "payroll", "percent",
+    "period", "plan", "profit", "profitable", "reduce", "reducing", "rent", "report",
+    "revenue", "revenues", "risk", "rois", "sales", "save", "saving", "savings", "should",
+    "spend", "spending", "spent", "status", "step", "steps", "summary", "target", "targets",
+    "tax", "taxes", "tell", "total", "totals", "track", "under", "variance", "warning",
+    "way", "ways", "which", "why", "year", "yearly",
+})
+
+
 def _extract_chat_search_query(question):
-    if not question or not _CHAT_SEARCH_TRIGGER_PATTERN.search(question):
+    if not question:
         return None
+    extra_stop = {"tell", "about", "what", "who", "sells", "alternatives", "alternative", "substitute", "substitutes", "save", "cut", "reduce", "spending"}
     tokens = [
         tok for tok in _CHAT_TOKEN_RE.findall(question.casefold())
-        if tok not in _CHAT_QUERY_NOISE_WORDS and len(tok) > 1
+        if tok not in _CHAT_QUERY_NOISE_WORDS and tok not in extra_stop and len(tok) > 1
     ]
     if not tokens:
         return None
-    return " ".join(tokens[:6])
+    if _CHAT_SEARCH_TRIGGER_PATTERN.search(question):
+        specific = [t for t in tokens if t not in _GENERIC_BUDGET_CHAT_WORDS]
+        chosen = specific if specific else tokens
+        return " ".join(chosen[:5])
+    # Also trigger if the user mentions an unfamiliar/specific product or term not in generic budget vocabulary
+    unfamiliar = [t for t in tokens if t not in _GENERIC_BUDGET_CHAT_WORDS and not t.isdigit() and len(t) >= 4]
+    if 1 <= len(unfamiliar) <= 4 and len(tokens) <= 10:
+        return " ".join(unfamiliar[:4])
+    return None
 
 
 def _build_chat_search_context(question):
     search_query = _extract_chat_search_query(question)
     if not search_query:
         return ""
+    web_info = {}
+    offers = []
+    try:
+        web_info = lookup_unknown_term_web(search_query)
+    except Exception:
+        web_info = {}
     try:
         offers = find_cheaper_offers(search_query, None, "", "us")
     except Exception:
-        return ""
-    if not offers:
-        return ""
-    lines = []
-    for idx, offer in enumerate(offers[:6], start=1):
-        shipping = f" ({offer['shipping']})" if offer.get("shipping") else ""
-        lines.append(
-            f"{idx}. {offer['title']} — {offer['merchant']} | Listed price: {offer['price']}{shipping} | Link: {offer['link']}"
+        offers = []
+
+    sections = []
+    expanded = web_info.get("expanded_query") or search_query
+    snippets = web_info.get("web_snippets") or []
+    if snippets:
+        header = f"Live web knowledge for '{search_query}'"
+        if expanded.casefold() != search_query.casefold():
+            header += f" (resolved to '{expanded}')"
+        sections.append(header + ":\n" + "\n".join(snippets[:3]))
+
+    if offers:
+        lines = []
+        for idx, offer in enumerate(offers[:5], start=1):
+            shipping = f" ({offer['shipping']})" if offer.get("shipping") else ""
+            lines.append(
+                f"{idx}. {offer['title']} — {offer['merchant']} | Listed price: {offer['price']}{shipping} | Link: {offer['link']}"
+            )
+        sections.append(
+            f"Live sourced product listings for '{expanded}':\n"
+            + "\n".join(lines)
+            + "\nWhen referencing these options, cite the exact listed prices, merchants, and full https:// links above."
         )
-    return (
-        f"\n\nLive sourced product listings for '{search_query}':\n"
-        + "\n".join(lines)
-        + "\nWhen referencing these options, cite the exact listed prices, merchants, and full https:// links above."
-    )
+
+    return ("\n\n" + "\n\n".join(sections)) if sections else ""
 
 
 def find_product_alternatives(
@@ -789,14 +834,32 @@ def _match_category_rule(category_name):
     return None
 
 
+_GENERIC_CATEGORY_FILLER = frozenset({
+    "expense", "expenses", "cost", "costs", "budget", "department", "general",
+    "misc", "miscellaneous", "other", "account", "line", "item", "items",
+    "category", "business", "operating", "operations", "monthly", "annual",
+    "random", "thing", "things", "unknown", "custom",
+})
+
+
 def category_to_supply_search(category_name):
     """Return a (product, requirements) consumable search for a budget category, or None.
 
-    Never falls back to searching the raw category name: generic names like "Vehicle"
-    return toys and novelty items from retail catalogs instead of business supplies.
+    Matches known rules first; for unfamiliar category names, strips generic accounting
+    filler words and resolves the term via live search expansion so custom supplies work.
     """
     rule = _match_category_rule(category_name)
-    return rule[0] if rule else None
+    if rule is not None:
+        return rule[0]
+    words = [
+        w for w in _CATEGORY_WORD_RE.findall((category_name or "").casefold())
+        if w not in _GENERIC_CATEGORY_FILLER and len(w) > 2 and not w.isdigit()
+    ]
+    if not words:
+        return None
+    raw_phrase = " ".join(words[:4])
+    expanded, extra = expand_search_query(raw_phrase)
+    return (expanded or raw_phrase, "")
 
 
 def category_savings_playbook(category_name):

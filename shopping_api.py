@@ -1,3 +1,4 @@
+from difflib import SequenceMatcher
 import base64
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import lru_cache
@@ -222,6 +223,103 @@ def _core_search_terms(product, requirements=""):
     return product_tokens, req_tokens
 
 
+_SUGGESTION_NOISE_WORDS = frozenset({
+    "meaning", "definition", "wiki", "wikipedia", "reddit", "lyrics", "movie",
+    "cast", "actor", "song", "game", "near", "me", "login", "portal", "careers",
+    "jobs", "salary", "stock", "ticker", "news", "weather", "map", "directions",
+    "vs", "versus", "meme", "quotes", "horoscope", "astrology",
+})
+
+
+@lru_cache(maxsize=256)
+def expand_search_query(query):
+    """Resolve typos, trade names, brand jargon, or unfamiliar words using live search suggestions."""
+    cleaned = " ".join(_TOKEN_RE.findall((query or "").casefold()))
+    if not cleaned:
+        return query, ()
+    orig_tokens = tuple(_normalized_tokens(cleaned))
+    try:
+        resp = _SESSION.get(
+            "https://api.bing.com/osjson.aspx",
+            params={"query": cleaned},
+            timeout=2.5,
+        )
+        if not resp.ok:
+            return query, ()
+        payload = resp.json()
+        suggestions = payload[1] if isinstance(payload, list) and len(payload) > 1 and isinstance(payload[1], list) else []
+    except Exception:
+        return query, ()
+
+    best_expanded = None
+    extra_tokens = []
+    seen_extra = set(orig_tokens)
+
+    for raw_sug in suggestions[:10]:
+        sug = str(raw_sug or "").strip().casefold()
+        sug_words = _TOKEN_RE.findall(sug)
+        if not sug_words:
+            continue
+        if any(w in _SUGGESTION_NOISE_WORDS for w in sug_words):
+            continue
+        if _is_consumer_noise(sug, cleaned, ""):
+            continue
+        norm_sug = _normalized_tokens(sug)
+        if not norm_sug:
+            continue
+        # Remove store names from suggestion if present
+        filtered_words = [
+            w for w in sug_words
+            if w not in ("walmart", "amazon", "target", "homedepot", "lowes", "costco", "canada", "uk", "usa")
+        ]
+        if not filtered_words:
+            continue
+        candidate_phrase = " ".join(filtered_words)
+        if best_expanded is None and candidate_phrase != cleaned:
+            # Either a typo fix (same word count & high similarity) or a single-word trade name expansion (e.g. "gaffer" -> "gaffers tape")
+            sim = SequenceMatcher(None, cleaned, candidate_phrase).ratio()
+            if (len(filtered_words) == len(orig_tokens) and sim >= 0.78) or (
+                len(orig_tokens) == 1 and orig_tokens[0] in norm_sug and len(filtered_words) == 2
+            ):
+                best_expanded = candidate_phrase
+        if len(extra_tokens) < 6 and (best_expanded == candidate_phrase or orig_tokens[0] in norm_sug):
+            for tok in _normalized_tokens(candidate_phrase):
+                if (
+                    tok not in _STOP_WORDS
+                    and len(tok) > 2
+                    and tok not in seen_extra
+                    and not any(tok.startswith(o) and len(tok) - len(o) >= 3 for o in orig_tokens)
+                ):
+                    seen_extra.add(tok)
+                    extra_tokens.append(tok)
+                    if len(extra_tokens) >= 6:
+                        break
+
+    return (best_expanded or query), tuple(extra_tokens)
+
+
+_INFLECTION_SUFFIXES = ("s", "es", "e", "ed", "er", "ers", "ing")
+
+
+def _token_fuzzy_match(token, title_terms):
+    if token in title_terms:
+        return True
+    t_len = len(token)
+    if t_len < 4:
+        return False
+    for cand in title_terms:
+        c_len = len(cand)
+        if c_len < 4 or abs(t_len - c_len) > 2:
+            continue
+        if cand.startswith(token) and cand[t_len:] in _INFLECTION_SUFFIXES:
+            return True
+        if token.startswith(cand) and token[c_len:] in _INFLECTION_SUFFIXES:
+            return True
+        if SequenceMatcher(None, token, cand).ratio() >= 0.82:
+            return True
+    return False
+
+
 def _is_consumer_noise(title, product, requirements=""):
     query_terms = set(_normalized_tokens(f"{product} {requirements}"))
     title_terms = set(_normalized_tokens(title))
@@ -234,8 +332,10 @@ def _is_consumer_noise(title, product, requirements=""):
     return False
 
 
-def _matches_product(title, product, requirements=""):
+def _matches_product(title, product, requirements="", expanded_terms=()):
     title_tokens = _normalized_tokens(title)
+    if not title_tokens:
+        return False
     if "sample" in title_tokens and "sample" not in _normalized_tokens(product):
         return False
     if _is_consumer_noise(title, product, requirements):
@@ -253,8 +353,15 @@ def _matches_product(title, product, requirements=""):
     if not product_terms:
         return False
 
-    required_matches = len(product_terms) if len(product_terms) <= 3 else max(2, math.ceil(len(product_terms) * 0.7))
-    if len(title_terms & product_terms) < required_matches:
+    required_matches = len(product_terms) if len(product_terms) <= 2 else max(2, math.ceil(len(product_terms) * 0.65))
+    fuzzy_hits = sum(1 for tok in product_terms if _token_fuzzy_match(tok, title_terms))
+
+    if fuzzy_hits < required_matches:
+        # Check if expanded/synonym terms for an unfamiliar or trade word match the title
+        if expanded_terms:
+            exp_hits = sum(1 for tok in expanded_terms if _token_fuzzy_match(tok, title_terms))
+            if exp_hits >= 1 and (fuzzy_hits >= 1 or exp_hits >= 2):
+                return True
         return False
 
     requirement_terms = (
@@ -264,12 +371,14 @@ def _matches_product(title, product, requirements=""):
         }
         | (all_product_terms & _PACKAGING_WORDS)
     )
-    if requirement_terms and not (title_terms & requirement_terms):
-        return False
+    if requirement_terms:
+        req_hits = sum(1 for tok in requirement_terms if _token_fuzzy_match(tok, title_terms))
+        if req_hits == 0 and fuzzy_hits < len(product_terms):
+            return False
     return True
 
 
-def _relevance_score(title, snippet, product, requirements=""):
+def _relevance_score(title, snippet, product, requirements="", expanded_terms=()):
     title_terms = set(_normalized_tokens(title))
     all_terms = title_terms | set(_normalized_tokens(snippet)) if snippet else title_terms
     prod_list, req_list = _core_search_terms(product, requirements)
@@ -278,9 +387,19 @@ def _relevance_score(title, snippet, product, requirements=""):
     if not prod_set:
         return 0.0
 
-    title_prod_ratio = len(prod_set & title_terms) / len(prod_set)
-    title_req_ratio = (len(req_set & title_terms) / len(req_set)) if req_set else 1.0
-    body_req_ratio = (len(req_set & all_terms) / len(req_set)) if req_set else 1.0
+    prod_hits = sum(1 for tok in prod_set if _token_fuzzy_match(tok, title_terms))
+    if prod_hits < len(prod_set) and expanded_terms:
+        exp_hits = sum(1 for tok in expanded_terms if _token_fuzzy_match(tok, title_terms))
+        prod_hits = min(len(prod_set), prod_hits + exp_hits)
+    title_prod_ratio = prod_hits / len(prod_set)
+    title_req_ratio = (
+        sum(1 for tok in req_set if _token_fuzzy_match(tok, title_terms)) / len(req_set)
+        if req_set else 1.0
+    )
+    body_req_ratio = (
+        sum(1 for tok in req_set if _token_fuzzy_match(tok, all_terms)) / len(req_set)
+        if req_set else 1.0
+    )
     return title_prod_ratio * 0.55 + title_req_ratio * 0.35 + body_req_ratio * 0.10
 
 
@@ -792,6 +911,24 @@ def _inspect_product_page(candidate, country="us"):
     return []
 
 
+def lookup_unknown_term_web(query):
+    """Fetch live web context and expanded product terms for an unfamiliar word or phrase."""
+    expanded_query, extra_terms = expand_search_query(query)
+    web_results = _search_bing_web(expanded_query or query)
+    snippets = []
+    for item in web_results[:4]:
+        title = item.get("title", "").strip()
+        snip = item.get("snippet", "").strip()
+        if title and snip:
+            snippets.append(f"- {title}: {snip[:180]}")
+    return {
+        "original": query,
+        "expanded_query": expanded_query,
+        "related_terms": extra_terms,
+        "web_snippets": snippets,
+    }
+
+
 def search_product_catalog(product, requirements="", region="us"):
     country, _ = _locale(region)
     cache_key = (product.strip().casefold(), (requirements or "").strip().casefold(), country)
@@ -808,8 +945,11 @@ def search_product_catalog(product, requirements="", region="us"):
 
     raw_offers = []
     web_candidates = []
+    expanded_query = full_query
+    expanded_terms = ()
 
     futures = {
+        _EXECUTOR.submit(expand_search_query, full_query): "expand",
         _EXECUTOR.submit(_search_walmart, full_query, country): "walmart_full",
         _EXECUTOR.submit(_search_officedepot, full_query, country): "officedepot_full",
         _EXECUTOR.submit(_search_webstaurantstore, full_query, country): "webstaurant_full",
@@ -824,13 +964,50 @@ def search_product_catalog(product, requirements="", region="us"):
     for future in as_completed(futures):
         tag = futures[future]
         try:
-            items = future.result()
+            res = future.result()
         except Exception:
             continue
-        if tag == "bing_core":
-            web_candidates.extend(items)
+        if tag == "expand":
+            expanded_query, expanded_terms = res
+        elif tag == "bing_core":
+            web_candidates.extend(res)
         else:
-            raw_offers.extend(items)
+            raw_offers.extend(res)
+
+    # Mine consensus product terms from web candidates if the word is unfamiliar
+    if not expanded_terms and web_candidates:
+        freq = {}
+        orig_set = set(_normalized_tokens(full_query))
+        for cand in web_candidates[:8]:
+            for tok in set(_normalized_tokens(cand.get("title", ""))):
+                if tok not in _STOP_WORDS and tok not in orig_set and len(tok) > 3 and tok not in _CONSUMER_NOISE_WORDS:
+                    freq[tok] = freq.get(tok, 0) + 1
+        consensus = [tok for tok, count in sorted(freq.items(), key=lambda kv: -kv[1]) if count >= 2][:4]
+        if consensus:
+            expanded_terms = tuple(consensus)
+
+    # If the user searched an unknown/misspelled/jargon word and initial results are sparse,
+    # run a second-pass catalog search using the auto-discovered expanded query.
+    initial_matches = sum(
+        1 for offer in raw_offers
+        if _matches_product(offer.get("title", ""), product, requirements, expanded_terms)
+    )
+    if initial_matches < 3 and expanded_query and expanded_query.casefold() != full_query.casefold():
+        retry_futures = [
+            _EXECUTOR.submit(_search_walmart, expanded_query, country),
+            _EXECUTOR.submit(_search_webstaurantstore, expanded_query, country),
+            _EXECUTOR.submit(_search_officedepot, expanded_query, country),
+            _EXECUTOR.submit(_search_bing_web, expanded_query),
+        ]
+        for rf in as_completed(retry_futures):
+            try:
+                items = rf.result()
+            except Exception:
+                continue
+            if items and isinstance(items[0], dict) and "url" in items[0] and "link" not in items[0]:
+                web_candidates.extend(items)
+            else:
+                raw_offers.extend(items)
 
     inspect_targets = []
     for cand in web_candidates:
@@ -855,13 +1032,12 @@ def search_product_catalog(product, requirements="", region="us"):
                     continue
             except ValueError:
                 pass
-        if _matches_product(cand.get("title", ""), product, requirements):
+        if _matches_product(cand.get("title", ""), product, requirements, expanded_terms):
             inspect_targets.append(cand)
 
-    # Only run Stage-2 deep page inspection if primary catalog queries returned fewer than 6 matching offers
     matched_primary_count = sum(
         1 for offer in raw_offers
-        if _matches_product(offer.get("title", ""), product, requirements)
+        if _matches_product(offer.get("title", ""), product, requirements, expanded_terms)
     )
     if inspect_targets and matched_primary_count < 6:
         detail_futures = [
@@ -884,6 +1060,8 @@ def search_product_catalog(product, requirements="", region="us"):
 
 def find_cheaper_offers(product, current_unit_price, requirements="", region="us", api_key=None, include_bulk_alternatives=False):
     country, _ = _locale(region)
+    full_query = " ".join(part.strip() for part in (product, requirements) if part and part.strip())
+    expanded_query, expanded_terms = expand_search_query(full_query)
     raw_offers, _ = search_product_catalog(product, requirements, region)
 
     cheaper_offers = []
@@ -895,7 +1073,9 @@ def find_cheaper_offers(product, current_unit_price, requirements="", region="us
         if not _is_direct_merchant_link(link) or link in seen_links:
             continue
         title = str(offer.get("title") or "").strip()
-        if not _matches_product(title, product, requirements):
+        if not _matches_product(title, product, requirements, expanded_terms) and not (
+            expanded_query != full_query and _matches_product(title, expanded_query, "", expanded_terms)
+        ):
             continue
         exact_price = _exact_offer(offer, country)
         if not exact_price:
@@ -925,7 +1105,7 @@ def find_cheaper_offers(product, current_unit_price, requirements="", region="us
             continue
 
         seen_links.add(link)
-        relevance = _relevance_score(title, offer.get("snippet", ""), product, requirements)
+        relevance = _relevance_score(title, offer.get("snippet", ""), product, requirements, expanded_terms)
         structured = {
             "title": title,
             "merchant": offer.get("merchant") or offer.get("name") or offer.get("source") or _merchant_name_from_url(link),
