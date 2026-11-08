@@ -6,7 +6,7 @@ from cryptography.fernet import Fernet, InvalidToken
 
 
 _MAGIC = b"BUDGETAI-ENCRYPTED-V1\0"
-_SERVICE_NAME = "BusinessBudgetAI"
+_SERVICE_NAME = "Abel"
 _KEY_NAME = "local-file-encryption-key"
 _SECURE_BACKENDS = (
     "keyring.backends.Windows",

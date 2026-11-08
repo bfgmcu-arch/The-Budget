@@ -1,31 +1,67 @@
-$ErrorActionPreference = "Stop"
+#define MyAppName "Abel"
+#define MyAppVersion "3.0.0"
+#define MyAppPublisher "Abel"
 
-$AppDir = Split-Path -Parent $PSScriptRoot
-$RequiredFiles = @(
-    "ai.py", "app.py", "budget.csv", "budget.py", "bookkeeping.py", "config.py", "desktop_app.py",
-    "quickbooks.py", "shopping_api.py", "requirements.txt", "secure_storage.py", "start_budget_ai.bat"
-)
-foreach ($File in $RequiredFiles) {
-    if (-not (Test-Path (Join-Path $AppDir $File))) {
-        throw "Required installer source file is missing: $File"
-    }
-}
+[Setup]
+AppId={{ABEL-BUDGET-2026-1001}
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+AppVerName={#MyAppName} {#MyAppVersion}
+AppPublisher={#MyAppPublisher}
 
-$InnoCompilerPath = (Get-Command ISCC.exe -ErrorAction SilentlyContinue).Source
-if (-not $InnoCompilerPath) {
-    $InnoPaths = @(
-        "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
-        "$env:ProgramFiles\Inno Setup 6\ISCC.exe",
-        "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
-    )
-    $InnoCompilerPath = $InnoPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
-}
-if ($InnoCompilerPath) {
-    & $InnoCompilerPath (Join-Path $PSScriptRoot "BusinessBudgetAI.iss")
-    if ($LASTEXITCODE -ne 0) {
-        throw "Inno Setup failed with exit code $LASTEXITCODE"
-    }
-}
-else {
-    Write-Host "ISCC.exe was not found. Install Inno Setup to build the installer package."
-}
+DefaultDirName={autopf}\Abel
+DefaultGroupName={#MyAppName}
+
+OutputDir=output
+OutputBaseFilename=AbelSetup
+
+Compression=lzma
+SolidCompression=yes
+WizardStyle=modern
+
+PrivilegesRequired=admin
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+
+[Files]
+Source: "..\ai.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\app.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\budget.csv"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\budget.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\config.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\desktop_app.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\bookkeeping.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\quickbooks.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\shopping_api.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\requirements.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\secure_storage.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\start_budget_ai.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "setup_app.ps1"; Flags: dontcopy
+
+[Icons]
+Name: "{autodesktop}\Abel"; Filename: "{app}\start_budget_ai.bat"
+Name: "{group}\Abel"; Filename: "{app}\start_budget_ai.bat"
+
+[Run]
+Filename: "{app}\start_budget_ai.bat"; \
+    Description: "Launch Abel"; \
+    Flags: postinstall nowait skipifsilent
+
+[Code]
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+    ResultCode: Integer;
+    ScriptPath: String;
+    Parameters: String;
+begin
+    if CurStep = ssPostInstall then
+    begin
+        ExtractTemporaryFile('setup_app.ps1');
+        ScriptPath := ExpandConstant('{tmp}\setup_app.ps1');
+        Parameters := '-NoProfile -ExecutionPolicy Bypass -File "' + ScriptPath + '" -AppDir "' + ExpandConstant('{app}') + '"';
+        if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Parameters, '', SW_SHOW, ewWaitUntilTerminated, ResultCode) then
+            RaiseException('Could not start the dependency installer.');
+        if ResultCode <> 0 then
+            RaiseException(Format('Dependency installation failed with exit code %d.', [ResultCode]));
+    end;
+end;

@@ -1,69 +1,79 @@
-# Business Budget AI
+# Abel
 
-Business Budget AI is a desktop app for reviewing a business budget, comparing planned and actual figures, and looking into possible ways to reduce costs. It also includes transaction checks, supplier searches, and QuickBooks import options.
+Abel is a desktop budget and planning tool for small businesses. It helps you track revenue and expenses, compare budgeted and actual results, test planning scenarios, review transactions, and keep an eye on supplier costs.
 
-## What it does
+## Overview
 
-- Import a budget from a CSV file or enter budget lines in the app.
-- Review revenue, expenses, profit, and differences between budgeted and actual amounts.
-- Try simple financial scenarios, such as a change in revenue or expenses.
-- Ask a local AI model questions about the figures in the loaded budget.
-- Check bank transaction CSV files for possible duplicate charges and price changes.
-- Search for lower-priced product listings.
-- Import budget information from QuickBooks Online, QuickBooks Desktop on Windows, or certain QuickBooks exports.
-- Save budget data and chat history locally.
+Abel gives you a simple operating view of your financial picture:
 
-## Getting started
+- budget tracking by category and type
+- comparison of budget to actual performance
+- scenario modeling for revenue, expense, and one-time cost changes
+- local budget advisor using an Ollama model
+- transaction review for duplicate charges and recurring price changes
+- supplier and product search support
+- QuickBooks import support
+- encrypted local backups and protected data storage
 
-### Requirements
+## Product name
+
+The application name is now Abel.
+
+This keeps the product branding clear, consistent, and easier to recognize across the app, installer, and local data files.
+
+## Requirements
 
 - Python 3
-- Ollama, with a supported local model available
-- An operating-system credential store supported by the `keyring` package
+- Ollama installed and running
+- A supported OS credential store for encrypted local data
 
-The default model is `qwen2.5:0.5b`. The app also checks for other local models if the configured model is unavailable.
+The default model used by the app is `qwen2.5:0.5b`.
 
-### Run from source
+## Installing and running
 
-Clone the repository and install the Python packages:
+### From source
 
 ```bash
 git clone https://github.com/bfgmcu-arch/The-Budget.git
 cd The-Budget
 python -m pip install -r requirements.txt
-```
-
-Start the app:
-
-```bash
 python app.py
 ```
 
-On Windows, you can also use `start_budget_ai.bat` after installing the dependencies.
+### Windows launcher
 
-## Working with budgets
+A Windows launcher is included in the repository root:
 
-Budget files should contain columns for category, type, budget, and actual. When importing a CSV, the app lets you match its columns to those fields. You can also add and edit budget lines in the app.
+```bat
+start_abel.bat
+```
 
-The app saves its working budget on your computer. Use the export option to create an encrypted backup. Encrypted files are tied to the operating-system account and credential store used to create them, so they may not open under a different account or on another computer.
+This starts the Abel app from the local environment.
 
-## AI advisor and supplier searches
+### Windows installer
 
-The advisor uses Ollama to run a model locally and provides budget figures as context for its responses. Supplier searches require an internet connection. Some product-search features may also require a SerpApi key, which can be entered in the app.
+The Windows installer project is under the `installer/` folder.
 
-Product listings and prices can change. Check the retailer’s page for current price, shipping, pack size, and product details before ordering.
+Main installer files:
 
-## QuickBooks
+- `installer/BusinessBudgetAI.iss`
+- `installer/build_windows.ps1`
+- `installer/setup_app.ps1`
 
-QuickBooks Online imports require an Intuit developer app and its credentials. The app uses the local callback address `http://localhost:8765/callback` during authorization.
+The installer is designed to set up Python, install the dependencies, download Ollama, and fetch the default model needed for Abel.
 
-On Windows, the app can also try to read an open QuickBooks Desktop session. It can look for certain QuickBooks IIF and CSV exports as well. If none of these sources are available, it may load its built-in sample company data; check the imported figures before using them.
+## Budget format
 
-## Privacy and limitations
+The app expects a CSV with these fields:
 
-Budget files, chat history, saved API keys, and QuickBooks connection details are stored locally. Where supported, the app encrypts saved data using a key held in the operating system’s credential store.
+- Category
+- Type
+- Budget
+- Actual
 
-The advisor’s output is general guidance, not accounting, tax, or investment advice. Transaction checks flag items for review; they do not determine whether a charge is fraudulent.
+## Local data and privacy
+
+Abel stores budget data, conversations, and saved settings on the local machine. Where supported, it encrypts this data using the operating system credential store.
 
 ## License
 
