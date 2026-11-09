@@ -17,7 +17,7 @@ Business Budget AI is a desktop app for reviewing a business budget, comparing p
 
 ### Install the Windows app
 
-Download the latest installer from the GitHub Releases page and run the `.exe` file. The installer:
+Download the **[Business Budget AI installer](https://github.com/bfgmcu-arch/The-Budget/releases/download/Release/BusinessBudgetAISetup.exe)** from the [GitHub Releases page](https://github.com/bfgmcu-arch/The-Budget/releases) and run the `.exe` file. The installer:
 
 - installs the app to your local `Program Files` folder
 - creates a desktop/start-menu shortcut
