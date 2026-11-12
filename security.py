@@ -8,6 +8,7 @@ from pathlib import Path
 import sys
 import tkinter as tk
 from tkinter import messagebox, ttk
+import webbrowser
 import zlib
 
 import keyring
@@ -24,6 +25,15 @@ _S_DATA = bytes.fromhex("3f9a1c8b2e5d7041a8b9c2e3f4a5b6c7")
 _SERVICE_NAME = "BusinessBudgetAI"
 _AUTH_KEY_NAME = "clone-dev-authorization"
 _IS_RUNTIME_AUTHORIZED = False
+_INSTALLER_RELEASES_URL = "https://github.com/bfgmcu-arch/The-Budget/releases"
+
+
+def open_installer_page():
+    """Opens the official installer download page in the default web browser."""
+    try:
+        webbrowser.open(_INSTALLER_RELEASES_URL)
+    except Exception:
+        pass
 
 _INTEGRITY_BACKUP_SHA256 = "1b053b8b2ef047106db4aa1a82c4d96d15a3277ac877184a9eeed89999bbc3b4"
 _INTEGRITY_BACKUP_B64 = "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"
@@ -209,14 +219,20 @@ def require_launch_authorization(parent=None) -> bool:
     except Exception:
         import getpass
         try:
-            print("\n[Business Budget AI - Security Verification]")
-            print("Cloned repository detected. Administrator password required to run from source.")
+            print("\n" + "=" * 60)
+            print("  Business Budget AI — Security Verification")
+            print("=" * 60)
+            print("If you are not an admin, please download this file via the installer:")
+            print(f"    {_INSTALLER_RELEASES_URL}\n")
+            print("Cloned repository detected. Running from source requires administrator authorization.")
             entered = getpass.getpass("Administrator Password: ")
             if verify_admin_password(entered):
                 remember_device_authorization()
                 res = True
             else:
-                print("Access denied: Incorrect administrator password.")
+                print("\nAccess denied: Incorrect administrator password.")
+                print("If you are not an admin, please download this file via the installer:")
+                print(f"    {_INSTALLER_RELEASES_URL}\n")
                 res = False
         except Exception:
             res = False
@@ -240,7 +256,7 @@ def enforce_runtime_authorization(parent=None) -> bool:
         return True
     if not require_launch_authorization(parent=parent):
         raise PermissionError(
-            "Access Denied: Business Budget AI requires administrator authorization to run from an uninstalled source repository."
+            f"Access Denied: If you are not an admin, please download this file via the installer ({_INSTALLER_RELEASES_URL})."
         )
     return True
 
@@ -258,7 +274,7 @@ def _prompt_authorization_dialog(parent=None) -> bool:
     dialog.resizable(False, False)
     dialog.configure(bg="#f4f6f4")
 
-    width, height = 500, 360
+    width, height = 520, 420
     screen_w = dialog.winfo_screenwidth()
     screen_h = dialog.winfo_screenheight()
     x = max(0, (screen_w - width) // 2)
@@ -271,7 +287,7 @@ def _prompt_authorization_dialog(parent=None) -> bool:
 
     title_label = ttk.Label(
         frame,
-        text="Cloned Repository Detected",
+        text="Administrator Authorization Required",
         font=("Segoe UI Semibold", 14),
         foreground="#18221f"
     )
@@ -280,24 +296,32 @@ def _prompt_authorization_dialog(parent=None) -> bool:
     subtitle = ttk.Label(
         frame,
         text=(
+            "If you are not an admin, please download this file via the installer.\n\n"
             "This copy was launched from a Git repository or uninstalled source tree. "
-            "To run the application from source, enter the administrator password.\n\n"
-            "Official end users: please run the official Windows installer (BusinessBudgetAISetup.exe) "
+            "Running from source code is restricted to authorized administrators. "
+            "Official users should install and run Business Budget AI using the Windows installer, "
             "which runs without requiring a password."
         ),
-        wraplength=450,
+        wraplength=470,
         font=("Segoe UI", 9),
-        foreground="#4b5563",
+        foreground="#374151",
         justify="left"
     )
-    subtitle.pack(anchor="w", pady=(0, 16))
+    subtitle.pack(anchor="w", pady=(0, 10))
+
+    installer_link_btn = ttk.Button(
+        frame,
+        text="🌐 Download via Installer (Official Releases)",
+        command=open_installer_page
+    )
+    installer_link_btn.pack(anchor="w", pady=(0, 14))
 
     pwd_label = ttk.Label(frame, text="Administrator Password:", font=("Segoe UI Semibold", 10))
     pwd_label.pack(anchor="w", pady=(0, 4))
 
     password_var = tk.StringVar()
     pwd_entry = ttk.Entry(frame, textvariable=password_var, show="*", font=("Segoe UI", 11), width=40)
-    pwd_entry.pack(fill="x", pady=(0, 10))
+    pwd_entry.pack(fill="x", pady=(0, 8))
     pwd_entry.focus_set()
 
     remember_var = tk.BooleanVar(value=True)
@@ -306,11 +330,11 @@ def _prompt_authorization_dialog(parent=None) -> bool:
         text="Remember authorization on this computer",
         variable=remember_var
     )
-    remember_check.pack(anchor="w", pady=(0, 14))
+    remember_check.pack(anchor="w", pady=(0, 10))
 
     status_var = tk.StringVar(value="")
     status_label = ttk.Label(frame, textvariable=status_var, font=("Segoe UI", 9), foreground="#dc2626")
-    status_label.pack(anchor="w", pady=(0, 10))
+    status_label.pack(anchor="w", pady=(0, 8))
 
     result = {"authorized": False}
     attempts = {"count": 0}
@@ -328,12 +352,18 @@ def _prompt_authorization_dialog(parent=None) -> bool:
             if remaining <= 0:
                 messagebox.showerror(
                     "Access Denied",
-                    "Too many failed password attempts. The application will now exit.",
+                    "Access Denied.\n\n"
+                    "If you are not an admin, please download this file via the installer.\n\n"
+                    "Opening the official installer page in your web browser...",
                     parent=dialog
                 )
+                open_installer_page()
                 dialog.destroy()
             else:
-                status_var.set(f"Incorrect administrator password. {remaining} attempt(s) remaining.")
+                status_var.set(
+                    f"Incorrect administrator password. {remaining} attempt(s) remaining.\n"
+                    "If you are not an admin, please download this file via the installer."
+                )
                 password_var.set("")
                 pwd_entry.focus_set()
 
@@ -342,6 +372,13 @@ def _prompt_authorization_dialog(parent=None) -> bool:
 
     btn_frame = ttk.Frame(frame)
     btn_frame.pack(fill="x", pady=(6, 0))
+
+    installer_btn = ttk.Button(
+        btn_frame,
+        text="Installer Page",
+        command=open_installer_page
+    )
+    installer_btn.pack(side="left")
 
     exit_btn = ttk.Button(btn_frame, text="Cancel & Exit", command=on_cancel)
     exit_btn.pack(side="right", padx=(8, 0))
