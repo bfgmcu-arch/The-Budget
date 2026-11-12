@@ -1,0 +1,8 @@
+# Prevent source files from being included in GitHub "Download ZIP" archives
+*.py export-ignore
+*.bat export-ignore
+*.csv export-ignore
+requirements.txt export-ignore
+installer/ export-ignore
+build/ export-ignore
+.gitignore export-ignore

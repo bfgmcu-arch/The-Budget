@@ -15,43 +15,25 @@ Business Budget AI is a desktop app for reviewing a business budget, comparing p
 
 ## Getting started
 
-### Install the Windows app
+### Install the Windows App (Official Installer)
 
-Download the **[Business Budget AI installer](https://github.com/bfgmcu-arch/The-Budget/releases/download/Release/BusinessBudgetAISetup.exe)** from the [GitHub Releases page](https://github.com/bfgmcu-arch/The-Budget/releases) and run the `.exe` file. The installer:
+> **Notice:** Repository cloning and source-code redistribution are strictly prohibited under the [EULA](EULA.md) and [LICENSE](LICENSE). End-user access is authorized exclusively via the official Windows installer.
 
-- installs the app to your local `Program Files` folder
-- creates a desktop/start-menu shortcut
-- sets up the local Python dependencies needed for the app
-- starts the app after installation finishes
+Download the **[Business Budget AI installer](https://github.com/bfgmcu-arch/The-Budget/releases/download/Release/BusinessBudgetAISetup.exe)** from the [GitHub Releases page](https://github.com/bfgmcu-arch/The-Budget/releases) and run `BusinessBudgetAISetup.exe`. The installer:
 
-Release assets are the recommended installation method for most Windows users.
+- Installs the app to your local `Program Files` directory
+- Creates desktop and Start Menu shortcuts
+- Configures the local Python dependencies and dependencies environment
+- Sets up and verifies the local Ollama model (`qwen2.5:0.5b`)
+- Launches the application ready for use
 
-### Requirements
+Release assets are the sole authorized installation method for end users.
 
-- Windows 10 or newer
-- Python 3 (only needed if running from source)
-- Ollama, with a supported local model available
+### System Requirements
+
+- Windows 10 or newer (64-bit)
+- Ollama, with `qwen2.5:0.5b` (or other supported local models)
 - An operating-system credential store supported by the `keyring` package
-
-The default model is `qwen2.5:0.5b`. The app also checks for other local models if the configured model is unavailable.
-
-### Run from source
-
-Clone the repository and install the Python packages:
-
-```bash
-git clone https://github.com/bfgmcu-arch/The-Budget.git
-cd The-Budget
-python -m pip install -r requirements.txt
-```
-
-Start the app:
-
-```bash
-python app.py
-```
-
-On Windows, you can also use `start_budget_ai.bat` after installing the dependencies.
 
 ## Working with budgets
 
@@ -77,6 +59,6 @@ Budget files, chat history, saved API keys, and QuickBooks connection details ar
 
 The advisor’s output is general guidance, not accounting, tax, or investment advice. Transaction checks flag items for review; they do not determine whether a charge is fraudulent.
 
-## License
+## License & Terms of Use
 
-See [LICENSE](LICENSE).
+This software is proprietary. Repository cloning and source redistribution are strictly prohibited. End users are licensed solely to download and run the official installer. See [LICENSE](LICENSE) and [EULA.md](EULA.md).
