@@ -7,6 +7,7 @@ import re
 
 import pandas as pd
 
+import integrity
 from security import enforce_runtime_authorization
 
 enforce_runtime_authorization()

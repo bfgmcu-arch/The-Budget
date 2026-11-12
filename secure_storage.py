@@ -4,6 +4,7 @@ from pathlib import Path
 import keyring
 from cryptography.fernet import Fernet, InvalidToken
 
+import integrity
 from security import enforce_runtime_authorization
 
 enforce_runtime_authorization()
