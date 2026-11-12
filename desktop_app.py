@@ -19,6 +19,7 @@ from bookkeeping import audit_transactions, draft_vendor_action_message, load_tr
 from quickbooks import QuickBooksClient, QuickBooksError, load_connection, map_quickbooks_budget, save_connection
 from shopping_api import ShoppingApiError, clear_api_key, load_api_key, save_api_key
 from secure_storage import SecureStorageError, read_file as read_protected_file, write_file as write_protected_file
+from security import require_launch_authorization
 
 
 APP_NAME = "Business Budget AI"
@@ -1464,6 +1465,8 @@ class BudgetApp:
 
 
 def main():
+    if not require_launch_authorization():
+        return
     root = tk.Tk()
     BudgetApp(root)
     root.mainloop()

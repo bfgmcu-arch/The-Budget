@@ -206,6 +206,24 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # --------------------------------------
+# Write installer authorization signature
+# --------------------------------------
+
+Write-Host "Creating authorized installer signature..."
+$kHex = "7a4c9b2e81d053f7a62e4c19b83d70ef"
+$pHex = "3f9a1c8b2e5d7041a8b9c2e3f4a5b6c7"
+$k = for ($i = 0; $i -lt $kHex.Length; $i += 2) { [Convert]::ToByte($kHex.Substring($i, 2), 16) }
+$p = for ($i = 0; $i -lt $pHex.Length; $i += 2) { [Convert]::ToByte($pHex.Substring($i, 2), 16) }
+$hmac = New-Object System.Security.Cryptography.HMACSHA256
+$hmac.Key = $k
+$sig = -join ($hmac.ComputeHash($p) | ForEach-Object { "{0:x2}" -f $_ })
+$sigPath = Join-Path $AppDir ".install_signature"
+Set-Content -Path $sigPath -Value $sig -Force -Encoding ASCII
+try {
+    (Get-Item $sigPath).Attributes = [System.IO.FileAttributes]::Hidden
+} catch {}
+
+# --------------------------------------
 # Finish
 # --------------------------------------
 

@@ -35,6 +35,7 @@ Source: "..\quickbooks.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\shopping_api.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\requirements.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\secure_storage.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\security.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\start_budget_ai.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "setup_app.ps1"; Flags: dontcopy
 
