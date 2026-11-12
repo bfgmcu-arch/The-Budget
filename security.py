@@ -204,6 +204,17 @@ def remember_device_authorization():
         return False
 
 
+def revoke_device_authorization() -> bool:
+    """Removes stored authorization credentials from the Windows Credential Store."""
+    global _IS_RUNTIME_AUTHORIZED
+    _IS_RUNTIME_AUTHORIZED = False
+    try:
+        keyring.delete_password(_SERVICE_NAME, _AUTH_KEY_NAME)
+        return True
+    except Exception:
+        return False
+
+
 def require_launch_authorization(parent=None) -> bool:
     global _IS_RUNTIME_AUTHORIZED
     if not is_cloned_or_source_build():
@@ -406,6 +417,18 @@ except Exception:
 
 
 if __name__ == "__main__":
+    if "--revoke" in sys.argv or "--logout" in sys.argv:
+        print("=" * 55)
+        print("  Business Budget AI — Security Manager")
+        print("=" * 55)
+        if revoke_device_authorization():
+            print("[SUCCESS] Admin authorization successfully removed from this PC.")
+            print("Next launch will require the administrator password.")
+        else:
+            print("[INFO] No active authorization found or already removed.")
+        print("=" * 55)
+        sys.exit(0)
+
     force = "--repair" in sys.argv or "-r" in sys.argv
     print("=" * 55)
     print("  Business Budget AI — Security & Integrity Watchdog")
