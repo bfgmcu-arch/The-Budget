@@ -5,6 +5,8 @@ from statistics import median
 import pandas as pd
 
 from budget import _parse_amount
+import security
+security.ensure_integrity_module()
 import integrity
 from security import enforce_runtime_authorization
 

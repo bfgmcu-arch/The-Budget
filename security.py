@@ -1,10 +1,14 @@
+import base64
 import hashlib
 import hmac
+import importlib
+import json
 import os
 from pathlib import Path
 import sys
 import tkinter as tk
 from tkinter import messagebox, ttk
+import zlib
 
 import keyring
 
@@ -20,6 +24,103 @@ _S_DATA = bytes.fromhex("3f9a1c8b2e5d7041a8b9c2e3f4a5b6c7")
 _SERVICE_NAME = "BusinessBudgetAI"
 _AUTH_KEY_NAME = "clone-dev-authorization"
 _IS_RUNTIME_AUTHORIZED = False
+
+_INTEGRITY_BACKUP_SHA256 = "1b053b8b2ef047106db4aa1a82c4d96d15a3277ac877184a9eeed89999bbc3b4"
+_INTEGRITY_BACKUP_B64 = "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"
+
+
+def _read_manifest_from_security() -> dict:
+    root_dir = Path(__file__).resolve().parent
+    vault_path = root_dir / "manifest.vault"
+    if not vault_path.exists():
+        return {}
+    try:
+        data = vault_path.read_bytes()
+        if len(data) < 32:
+            return {}
+        signature = data[:32]
+        payload = data[32:]
+        expected_sig = hmac.new(_S_KEY, payload, hashlib.sha256).digest()
+        if not hmac.compare_digest(signature, expected_sig):
+            return {}
+        raw = zlib.decompress(payload).decode("utf-8")
+        return json.loads(raw)
+    except Exception:
+        return {}
+
+
+def repair_integrity_module(force: bool = False) -> bool:
+    """Restores integrity.py from manifest.vault or the embedded cryptographic fallback."""
+    root_dir = Path(__file__).resolve().parent
+    integrity_path = root_dir / "integrity.py"
+
+    restored_bytes = None
+    manifest = _read_manifest_from_security()
+    if manifest and "files" in manifest and "integrity.py" in manifest.get("files", {}):
+        try:
+            data_b64 = manifest["files"]["integrity.py"].get("data_b64", "")
+            if data_b64:
+                compressed = base64.b64decode(data_b64.encode("ascii"))
+                restored_bytes = zlib.decompress(compressed)
+        except Exception:
+            restored_bytes = None
+
+    if not restored_bytes and _INTEGRITY_BACKUP_B64:
+        try:
+            compressed = base64.b64decode(_INTEGRITY_BACKUP_B64.encode("ascii"))
+            restored_bytes = zlib.decompress(compressed)
+        except Exception:
+            restored_bytes = None
+
+    if not restored_bytes:
+        return False
+
+    try:
+        integrity_path.write_bytes(restored_bytes)
+        if "integrity" in sys.modules:
+            importlib.reload(sys.modules["integrity"])
+        return True
+    except Exception:
+        return False
+
+
+def ensure_integrity_module(force: bool = False) -> bool:
+    """Verifies that integrity.py exists and is authentic.
+
+    If integrity.py is missing, corrupted, or altered on an unauthorized device,
+    this function immediately repairs and resurrects it.
+    """
+    root_dir = Path(__file__).resolve().parent
+    integrity_path = root_dir / "integrity.py"
+
+    if not integrity_path.exists():
+        return repair_integrity_module(force=True)
+
+    if force:
+        return repair_integrity_module(force=True)
+
+    if is_device_authorized():
+        return True
+
+    try:
+        current_bytes = integrity_path.read_bytes().replace(b"\r\n", b"\n")
+        current_sha = hashlib.sha256(current_bytes).hexdigest()
+
+        manifest = _read_manifest_from_security()
+        golden_sha = ""
+        if manifest and "files" in manifest and "integrity.py" in manifest.get("files", {}):
+            golden_sha = manifest["files"]["integrity.py"].get("sha256", "")
+
+        if not golden_sha:
+            golden_sha = _INTEGRITY_BACKUP_SHA256
+
+        if not hmac.compare_digest(current_sha, golden_sha):
+            return repair_integrity_module(force=True)
+    except Exception:
+        return repair_integrity_module(force=True)
+
+    return True
+
 
 
 def is_runtime_authorized() -> bool:
@@ -74,8 +175,6 @@ def verify_admin_password(password: str) -> bool:
 
 
 def is_device_authorized() -> bool:
-    if os.environ.get("BUDGET_AI_TEST_CLEAN_DEVICE") == "1":
-        return False
     try:
         token = keyring.get_password(_SERVICE_NAME, _AUTH_KEY_NAME)
         if token:
@@ -87,8 +186,6 @@ def is_device_authorized() -> bool:
 
 
 def remember_device_authorization():
-    if os.environ.get("BUDGET_AI_TEST_CLEAN_DEVICE") == "1":
-        return False
     try:
         token = hashlib.sha256(_K_SALT + _K_VERIFIER).hexdigest()
         keyring.set_password(_SERVICE_NAME, _AUTH_KEY_NAME, token)
@@ -132,10 +229,12 @@ def require_launch_authorization(parent=None) -> bool:
 def enforce_runtime_authorization(parent=None) -> bool:
     """Enforces runtime authorization across all application modules.
 
+    Also verifies and repairs integrity.py if missing or altered.
     If running inside an uninstalled or cloned repository, checks for device
     authorization or prompts for administrator verification. Raises PermissionError
     if unverified.
     """
+    ensure_integrity_module()
     global _IS_RUNTIME_AUTHORIZED
     if _IS_RUNTIME_AUTHORIZED:
         return True
@@ -260,3 +359,37 @@ def _prompt_authorization_dialog(parent=None) -> bool:
         dialog.wait_window()
 
     return result["authorized"]
+
+
+# Automatic startup integrity check
+try:
+    ensure_integrity_module()
+except Exception:
+    pass
+
+
+if __name__ == "__main__":
+    force = "--repair" in sys.argv or "-r" in sys.argv
+    print("=" * 55)
+    print("  Business Budget AI — Security & Integrity Watchdog")
+    print("=" * 55)
+    root = Path(__file__).resolve().parent
+    int_file = root / "integrity.py"
+    if not int_file.exists():
+        print("integrity.py: MISSING")
+    else:
+        sha = hashlib.sha256(int_file.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+        print(f"integrity.py SHA256: {sha}")
+
+    if force or not int_file.exists():
+        print("\nRepairing integrity.py...")
+        if repair_integrity_module(force=True):
+            print("[SUCCESS] integrity.py has been restored.")
+        else:
+            print("[FAILED] Could not restore integrity.py.")
+    else:
+        ok = ensure_integrity_module()
+        print(f"\nIntegrity watchdog status: {'HEALTHY' if ok else 'ALERT'}")
+        print("To force repair integrity.py, run:")
+        print("    python security.py --repair")
+    print("=" * 55)

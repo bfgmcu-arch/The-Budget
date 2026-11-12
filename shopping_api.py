@@ -16,6 +16,8 @@ import requests
 from requests.adapters import HTTPAdapter
 
 from secure_storage import SecureStorageError, read_file, write_file
+import security
+security.ensure_integrity_module()
 import integrity
 from security import enforce_runtime_authorization
 

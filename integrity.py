@@ -100,5 +100,67 @@ def verify_and_repair_manifest(force: bool = False) -> bool:
     return True
 
 
-# Run integrity verification immediately upon module load
+# Run integrity verification automatically on import
 verify_and_repair_manifest()
+
+
+if __name__ == "__main__":
+    force_repair = "--repair" in sys.argv or "-r" in sys.argv
+    print("=" * 55)
+    print("  Business Budget AI — Integrity Audit & Self-Healing")
+    print("=" * 55)
+    try:
+        manifest = load_manifest()
+        print("Vault Status: VALID (HMAC-SHA256 signature verified)")
+        print(f"Vault Contains: {len(manifest.get('files', {}))} core modules\n")
+    except Exception as exc:
+        print(f"Vault Status: ERROR ({exc})")
+        print("\nTo rebuild the manifest vault from current working files, run:")
+        print("    python update_manifest.py\n")
+        sys.exit(1)
+
+    root_dir = _get_root_dir()
+    files = manifest.get("files", {})
+    repaired_count = 0
+    ok_count = 0
+
+    for filename, meta in files.items():
+        filepath = root_dir / filename
+        golden_sha = meta.get("sha256", "")
+        status = "OK"
+
+        if not filepath.exists():
+            status = "MISSING"
+        else:
+            try:
+                curr = filepath.read_bytes().replace(b"\r\n", b"\n")
+                if not hmac.compare_digest(hashlib.sha256(curr).hexdigest(), golden_sha):
+                    status = "MODIFIED"
+            except Exception:
+                status = "CORRUPT"
+
+        if status != "OK":
+            if force_repair:
+                try:
+                    compressed = base64.b64decode(meta.get("data_b64", "").encode("ascii"))
+                    filepath.write_bytes(zlib.decompress(compressed))
+                    print(f"  [REPAIRED] {filename:<22} (Restored from manifest.vault)")
+                    repaired_count += 1
+                except Exception as err:
+                    print(f"  [FAILED]   {filename:<22} (Repair error: {err})")
+            else:
+                print(f"  [ALERT]    {filename:<22} ({status})")
+        else:
+            print(f"  [OK]       {filename:<22} (Pristine)")
+            ok_count += 1
+
+    print("\n" + "-" * 55)
+    if repaired_count > 0:
+        print(f"Integrity Repair Complete: {repaired_count} file(s) restored.")
+    elif ok_count == len(files):
+        print("Integrity Status: 100% HEALTHY — All core files are pristine.")
+    else:
+        print("Integrity Alert: File mismatches detected.")
+        print("To automatically repair all files, run:")
+        print("    python integrity.py --repair")
+    print("-" * 55)

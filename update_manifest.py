@@ -18,6 +18,7 @@ _S_KEY = bytes.fromhex("7a4c9b2e81d053f7a62e4c19b83d70ef")
 
 CORE_FILES = [
     "security.py",
+    "integrity.py",
     "app.py",
     "desktop_app.py",
     "budget.py",
