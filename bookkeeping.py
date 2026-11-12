@@ -5,6 +5,9 @@ from statistics import median
 import pandas as pd
 
 from budget import _parse_amount
+from security import enforce_runtime_authorization
+
+enforce_runtime_authorization()
 
 
 TRANSACTION_ALIASES = {

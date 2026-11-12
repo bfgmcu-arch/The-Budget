@@ -19,7 +19,9 @@ from bookkeeping import audit_transactions, draft_vendor_action_message, load_tr
 from quickbooks import QuickBooksClient, QuickBooksError, load_connection, map_quickbooks_budget, save_connection
 from shopping_api import ShoppingApiError, clear_api_key, load_api_key, save_api_key
 from secure_storage import SecureStorageError, read_file as read_protected_file, write_file as write_protected_file
-from security import require_launch_authorization
+from security import enforce_runtime_authorization, is_runtime_authorized, require_launch_authorization
+
+enforce_runtime_authorization()
 
 
 APP_NAME = "Business Budget AI"

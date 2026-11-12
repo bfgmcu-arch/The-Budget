@@ -10,6 +10,9 @@ from xml.etree import ElementTree
 
 import ollama
 from config import MODEL_NAME
+from security import enforce_runtime_authorization
+
+enforce_runtime_authorization()
 from shopping_api import ShoppingApiError, expand_search_query, find_cheaper_offers, load_api_key, lookup_unknown_term_web, search_product_catalog
 from secure_storage import read_file as read_protected_file, write_file as write_protected_file
 

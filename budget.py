@@ -7,6 +7,10 @@ import re
 
 import pandas as pd
 
+from security import enforce_runtime_authorization
+
+enforce_runtime_authorization()
+
 REQUIRED_COLUMNS = ("Category", "Type", "Budget", "Actual")
 
 COLUMN_ALIASES = {

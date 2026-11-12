@@ -16,6 +16,9 @@ import requests
 from requests.adapters import HTTPAdapter
 
 from secure_storage import SecureStorageError, read_file, write_file
+from security import enforce_runtime_authorization
+
+enforce_runtime_authorization()
 
 
 MAX_PRODUCT_DETAIL_LOOKUPS = 4

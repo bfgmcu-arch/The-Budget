@@ -4,6 +4,10 @@ from pathlib import Path
 import keyring
 from cryptography.fernet import Fernet, InvalidToken
 
+from security import enforce_runtime_authorization
+
+enforce_runtime_authorization()
+
 
 _MAGIC = b"BUDGETAI-ENCRYPTED-V1\0"
 _SERVICE_NAME = "BusinessBudgetAI"

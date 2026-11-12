@@ -103,10 +103,43 @@ def require_launch_authorization(parent=None) -> bool:
         _IS_RUNTIME_AUTHORIZED = True
         return True
 
-    res = _prompt_authorization_dialog(parent)
+    try:
+        res = _prompt_authorization_dialog(parent)
+    except Exception:
+        import getpass
+        try:
+            print("\n[Business Budget AI - Security Verification]")
+            print("Cloned repository detected. Administrator password required to run from source.")
+            entered = getpass.getpass("Administrator Password: ")
+            if verify_admin_password(entered):
+                remember_device_authorization()
+                res = True
+            else:
+                print("Access denied: Incorrect administrator password.")
+                res = False
+        except Exception:
+            res = False
+
     if res:
         _IS_RUNTIME_AUTHORIZED = True
-    return res
+    return bool(res)
+
+
+def enforce_runtime_authorization(parent=None) -> bool:
+    """Enforces runtime authorization across all application modules.
+
+    If running inside an uninstalled or cloned repository, checks for device
+    authorization or prompts for administrator verification. Raises PermissionError
+    if unverified.
+    """
+    global _IS_RUNTIME_AUTHORIZED
+    if _IS_RUNTIME_AUTHORIZED:
+        return True
+    if not require_launch_authorization(parent=parent):
+        raise PermissionError(
+            "Access Denied: Business Budget AI requires administrator authorization to run from an uninstalled source repository."
+        )
+    return True
 
 
 def _prompt_authorization_dialog(parent=None) -> bool:

@@ -16,6 +16,9 @@ from xml.etree import ElementTree
 import requests
 
 from secure_storage import read_file, write_file
+from security import enforce_runtime_authorization
+
+enforce_runtime_authorization()
 
 
 OAUTH_TOKEN_URL = "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
