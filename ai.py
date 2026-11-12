@@ -10,6 +10,7 @@ from xml.etree import ElementTree
 
 import ollama
 from config import MODEL_NAME
+import integrity
 from security import enforce_runtime_authorization
 
 enforce_runtime_authorization()
