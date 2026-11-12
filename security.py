@@ -74,6 +74,8 @@ def verify_admin_password(password: str) -> bool:
 
 
 def is_device_authorized() -> bool:
+    if os.environ.get("BUDGET_AI_TEST_CLEAN_DEVICE") == "1":
+        return False
     try:
         token = keyring.get_password(_SERVICE_NAME, _AUTH_KEY_NAME)
         if token:
@@ -85,6 +87,8 @@ def is_device_authorized() -> bool:
 
 
 def remember_device_authorization():
+    if os.environ.get("BUDGET_AI_TEST_CLEAN_DEVICE") == "1":
+        return False
     try:
         token = hashlib.sha256(_K_SALT + _K_VERIFIER).hexdigest()
         keyring.set_password(_SERVICE_NAME, _AUTH_KEY_NAME, token)
