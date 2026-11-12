@@ -19,6 +19,20 @@ _S_DATA = bytes.fromhex("3f9a1c8b2e5d7041a8b9c2e3f4a5b6c7")
 
 _SERVICE_NAME = "BusinessBudgetAI"
 _AUTH_KEY_NAME = "clone-dev-authorization"
+_IS_RUNTIME_AUTHORIZED = False
+
+
+def is_runtime_authorized() -> bool:
+    global _IS_RUNTIME_AUTHORIZED
+    if _IS_RUNTIME_AUTHORIZED:
+        return True
+    if not is_cloned_or_source_build():
+        _IS_RUNTIME_AUTHORIZED = True
+        return True
+    if is_device_authorized():
+        _IS_RUNTIME_AUTHORIZED = True
+        return True
+    return False
 
 
 def get_expected_install_signature() -> str:
@@ -80,13 +94,19 @@ def remember_device_authorization():
 
 
 def require_launch_authorization(parent=None) -> bool:
+    global _IS_RUNTIME_AUTHORIZED
     if not is_cloned_or_source_build():
+        _IS_RUNTIME_AUTHORIZED = True
         return True
 
     if is_device_authorized():
+        _IS_RUNTIME_AUTHORIZED = True
         return True
 
-    return _prompt_authorization_dialog(parent)
+    res = _prompt_authorization_dialog(parent)
+    if res:
+        _IS_RUNTIME_AUTHORIZED = True
+    return res
 
 
 def _prompt_authorization_dialog(parent=None) -> bool:

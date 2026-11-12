@@ -25,6 +25,10 @@ def _get_cipher():
     if _CACHED_CIPHER is not None:
         return _CACHED_CIPHER
 
+    from security import is_runtime_authorized
+    if not is_runtime_authorized():
+        raise SecureStorageError("Unauthorized execution environment. Security verification failed.")
+
     backend = keyring.get_keyring()
     backend_module = type(backend).__module__
     if not any(backend_module.startswith(name) for name in _SECURE_BACKENDS):
