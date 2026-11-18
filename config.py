@@ -1,6 +1,6 @@
 MODEL_NAME = "qwen2.5:0.5b"
 
-BUSINESS_NAME = "My Business"
+BUSINESS_NAME = "Student Led Business Solutions"
 
 CURRENCY = "$"
 

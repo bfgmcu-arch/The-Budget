@@ -107,7 +107,7 @@ verify_and_repair_manifest()
 if __name__ == "__main__":
     force_repair = "--repair" in sys.argv or "-r" in sys.argv
     print("=" * 55)
-    print("  Business Budget AI — Integrity Audit & Self-Healing")
+    print("  Abel — Integrity Audit & Self-Healing")
     print("=" * 55)
     try:
         manifest = load_manifest()

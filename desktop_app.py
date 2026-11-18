@@ -27,12 +27,12 @@ from security import enforce_runtime_authorization, is_runtime_authorized, requi
 enforce_runtime_authorization()
 
 
-APP_NAME = "Business Budget AI"
+APP_NAME = "Abel"
 _URL_RE = re.compile(r"https?://[^\s<>]+")
 FIELDS = ["Category", "Type", "Budget", "Actual"]
 TUTORIAL_PAGES = (
     (
-        "Welcome to Business Budget AI",
+        "Welcome to Abel",
         "Use this workspace to understand business income and costs. Budget overview shows revenue, expenses, and profit. AI advisor answers questions using the budget you load."
     ),
     (
@@ -45,7 +45,7 @@ TUTORIAL_PAGES = (
     ),
     (
         "Your data and product searches",
-        "Saved budgets, chat history, API keys, and exported backups are encrypted using this Windows account's credential store. Encrypted backups are tied to this account and computer. The AI model runs locally. Product name, specifications, and region are queried across public retail and supplier listings; budget amounts and current price are not sent. QuickBooks imports read budget and Profit & Loss account totals only."
+        "Saved budgets, chat history, API keys, and exported backups are encrypted using your operating system's secure credential store. Encrypted backups are tied to this account and computer. The AI model runs locally. Product name, specifications, and region are queried across public retail and supplier listings; budget amounts and current price are not sent. QuickBooks imports read budget and Profit & Loss account totals only."
     )
 )
 COLORS = {
@@ -62,11 +62,20 @@ COLORS = {
 
 
 def data_file():
-    if os.name == "nt":
+    if sys.platform == "darwin":
+        base = Path.home() / "Library" / "Application Support"
+    elif os.name == "nt":
         base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
     else:
         base = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
-    return base / "BusinessBudgetAI" / "budget.csv.enc"
+    target = base / "Abel"
+    old = base / "BusinessBudgetAI"
+    if old.exists() and not target.exists():
+        try:
+            old.rename(target)
+        except Exception:
+            return old / "budget.csv.enc"
+    return target / "budget.csv.enc"
 
 
 def budget_signature(df):
@@ -130,7 +139,7 @@ class BudgetApp:
         header.pack(fill="x")
         heading = ttk.Frame(header, style="App.TFrame")
         heading.pack(side="left", fill="x", expand=True)
-        ttk.Label(heading, text="Business Budget AI", style="Title.TLabel").pack(anchor="w")
+        ttk.Label(heading, text="Abel", style="Title.TLabel").pack(anchor="w")
         ttk.Label(heading, text="A clear view of your numbers, with practical AI guidance.", style="Subtitle.TLabel").pack(anchor="w", pady=(3, 0))
         self.status_var = tk.StringVar(value="Ready")
         ttk.Label(header, textvariable=self.status_var, style="Subtitle.TLabel").pack(side="right", anchor="e", padx=(12, 0))
@@ -633,7 +642,7 @@ class BudgetApp:
             return
 
         dialog = tk.Toplevel(self.root)
-        dialog.title("Welcome to Business Budget AI")
+        dialog.title("Welcome to Abel")
         dialog.transient(self.root)
         dialog.resizable(False, False)
         dialog.configure(bg=COLORS["background"])
@@ -1509,7 +1518,7 @@ def show_splash_screen(root, duration_ms: int = 2200, on_complete=None):
 
     status_lbl = tk.Label(
         card,
-        text="Starting Business Budget AI...",
+        text="Starting Abel...",
         font=("Segoe UI", 9),
         fg="#64776f",
         bg="#18221f"

@@ -212,7 +212,7 @@ def _extract_exact_listing_price(result, region):
 def _search_product_web(query, offset=1):
     request = Request(
         "https://www.bing.com/search?" + urlencode({"q": query, "format": "rss", "first": offset}),
-        headers={"User-Agent": "Mozilla/5.0 (compatible; BusinessBudgetAI/1.0)"}
+        headers={"User-Agent": "Mozilla/5.0 (compatible; Abel/1.0)"}
     )
     with urlopen(request, timeout=15) as response:
         document = ElementTree.fromstring(response.read())
@@ -467,11 +467,20 @@ def find_product_alternatives(
 
 
 def _conversation_database_path():
-    if os.name == "nt":
+    if sys.platform == "darwin":
+        data_directory = Path.home() / "Library" / "Application Support"
+    elif os.name == "nt":
         data_directory = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
     else:
         data_directory = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
-    return data_directory / "BusinessBudgetAI" / "chat_memory.sqlite3"
+    target = data_directory / "Abel"
+    old = data_directory / "BusinessBudgetAI"
+    if old.exists() and not target.exists():
+        try:
+            old.rename(target)
+        except Exception:
+            return old / "chat_memory.sqlite3"
+    return target / "chat_memory.sqlite3"
 
 
 def _open_conversation_database(write_if_unencrypted=True):

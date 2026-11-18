@@ -380,7 +380,7 @@ def generate_executive_report_html(df, analysis_text="", scenario_tuple=None, me
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Executive Financial Report — Business Budget AI</title>
+<title>Executive Financial Report — Abel</title>
 <style>
   body {{ font-family: 'Segoe UI', system-ui, sans-serif; background: #f3f5f2; color: #18221f; margin: 0; padding: 32px; }}
   .container {{ max-width: 1060px; margin: 0 auto; }}
@@ -404,7 +404,7 @@ def generate_executive_report_html(df, analysis_text="", scenario_tuple=None, me
 <div class="container">
   <div class="header">
     <div>
-      <h1>Business Budget AI — Executive Financial Report</h1>
+      <h1>Abel — Executive Financial Report</h1>
       <div class="sub">Generated locally on {timestamp}</div>
     </div>
     <button onclick="window.print()" style="background:#176b52;color:#fff;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;font-weight:600;">Print / Save PDF</button>

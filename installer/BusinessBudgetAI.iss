@@ -1,6 +1,6 @@
-#define MyAppName "Business Budget AI"
+#define MyAppName "Abel"
 #define MyAppVersion "3.0.0"
-#define MyAppPublisher "Business Budget AI"
+#define MyAppPublisher "Student Led Business Solutions"
 
 [Setup]
 AppId={{BUDGET-AI-2026-1001}
@@ -9,11 +9,11 @@ AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 
-DefaultDirName={autopf}\Business Budget AI
+DefaultDirName={autopf}\Abel
 DefaultGroupName={#MyAppName}
 
 OutputDir=output
-OutputBaseFilename=BusinessBudgetAISetup
+OutputBaseFilename=AbelSetup
 
 Compression=lzma
 SolidCompression=yes
@@ -38,16 +38,17 @@ Source: "..\secure_storage.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\security.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\integrity.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\manifest.vault"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\start_abel.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\start_budget_ai.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "setup_app.ps1"; Flags: dontcopy
 
 [Icons]
-Name: "{autodesktop}\Business Budget AI"; Filename: "{app}\start_budget_ai.bat"
-Name: "{group}\Business Budget AI"; Filename: "{app}\start_budget_ai.bat"
+Name: "{autodesktop}\Abel"; Filename: "{app}\start_abel.bat"
+Name: "{group}\Abel"; Filename: "{app}\start_abel.bat"
 
 [Run]
-Filename: "{app}\start_budget_ai.bat"; \
-    Description: "Launch Business Budget AI"; \
+Filename: "{app}\start_abel.bat"; \
+    Description: "Launch Abel"; \
     Flags: postinstall nowait skipifsilent
 
 [Code]

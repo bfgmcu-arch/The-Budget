@@ -1,4 +1,4 @@
-param(
+﻿param(
     [Parameter(Mandatory = $true)]
     [string]$AppDir
 )
@@ -8,7 +8,7 @@ $VenvDir = Join-Path $AppDir ".venv"
 $VenvPython = Join-Path $VenvDir "Scripts\python.exe"
 
 Write-Host "======================================"
-Write-Host " Business Budget AI Setup"
+Write-Host " Abel Setup — Student Led Business Solutions"
 Write-Host "======================================"
 Write-Host ""
 
@@ -233,5 +233,5 @@ Write-Host " Installation complete!"
 Write-Host "======================================"
 Write-Host ""
 Write-Host "Application:"
-Write-Host (Join-Path $AppDir "start_budget_ai.bat")
+Write-Host (Join-Path $AppDir "start_abel.bat")
 Write-Host ""

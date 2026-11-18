@@ -42,11 +42,20 @@ class QuickBooksError(RuntimeError):
 
 
 def _data_dir():
-    if os.name == "nt":
+    if sys.platform == "darwin":
+        base = Path.home() / "Library" / "Application Support"
+    elif os.name == "nt":
         base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
     else:
         base = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
-    return base / "BusinessBudgetAI"
+    target = base / "Abel"
+    old = base / "BusinessBudgetAI"
+    if old.exists() and not target.exists():
+        try:
+            old.rename(target)
+        except Exception:
+            return old
+    return target
 
 
 def _connection_path():
@@ -225,7 +234,7 @@ try {
     }
 }
 try {
-    $rp.OpenConnection2("", "Business Budget AI", 1)
+    $rp.OpenConnection2("", "Abel", 1)
     $ticket = $rp.BeginSession("", 2)
     $req = '<?xml version="1.0"?><?qbxml version="13.0"?><QBXML><QBXMLMsgsRq onError="continueOnError"><AccountQueryRq><ActiveStatus>ActiveOnly</ActiveStatus></AccountQueryRq></QBXMLMsgsRq></QBXML>'
     $resp = $rp.ProcessRequest($ticket, $req)
@@ -629,7 +638,7 @@ class _OAuthCallbackHandler(BaseHTTPRequestHandler):
             "error": query.get("error", [""])[0]
         }
         body = (
-            b"QuickBooks authorization received. You can close this tab and return to Business Budget AI."
+            b"QuickBooks authorization received. You can close this tab and return to Abel."
             if not self.server.oauth_result["error"]
             else b"QuickBooks authorization was not completed. You can close this tab."
         )

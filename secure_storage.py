@@ -13,7 +13,7 @@ enforce_runtime_authorization()
 
 
 _MAGIC = b"BUDGETAI-ENCRYPTED-V1\0"
-_SERVICE_NAME = "BusinessBudgetAI"
+_SERVICE_NAME = "Abel"
 _KEY_NAME = "local-file-encryption-key"
 _SECURE_BACKENDS = (
     "keyring.backends.Windows",
@@ -46,6 +46,15 @@ def _get_cipher():
 
     try:
         key = keyring.get_password(_SERVICE_NAME, _KEY_NAME)
+        if key is None:
+            # Check for existing key from legacy service name
+            legacy_key = keyring.get_password("BusinessBudgetAI", _KEY_NAME)
+            if legacy_key is not None:
+                key = legacy_key
+                try:
+                    keyring.set_password(_SERVICE_NAME, _KEY_NAME, key)
+                except Exception:
+                    pass
         if key is None:
             key = Fernet.generate_key().decode("ascii")
             keyring.set_password(_SERVICE_NAME, _KEY_NAME, key)

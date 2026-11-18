@@ -22,7 +22,7 @@ _K_ROUNDS = 120000
 _S_KEY = bytes.fromhex("7a4c9b2e81d053f7a62e4c19b83d70ef")
 _S_DATA = bytes.fromhex("3f9a1c8b2e5d7041a8b9c2e3f4a5b6c7")
 
-_SERVICE_NAME = "BusinessBudgetAI"
+_SERVICE_NAME = "Abel"
 _AUTH_KEY_NAME = "clone-dev-authorization"
 _IS_RUNTIME_AUTHORIZED = False
 _INSTALLER_RELEASES_URL = "https://github.com/bfgmcu-arch/The-Budget/releases"
@@ -35,8 +35,8 @@ def open_installer_page():
     except Exception:
         pass
 
-_INTEGRITY_BACKUP_SHA256 = "1b053b8b2ef047106db4aa1a82c4d96d15a3277ac877184a9eeed89999bbc3b4"
-_INTEGRITY_BACKUP_B64 = "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"
+_INTEGRITY_BACKUP_SHA256 = "31a3a357f3c0cbba0e70ffd2025a71e2eab072210961ecd28472afb8bab86165"
+_INTEGRITY_BACKUP_B64 = "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"
 
 
 def _read_manifest_from_security() -> dict:
@@ -187,6 +187,13 @@ def verify_admin_password(password: str) -> bool:
 def is_device_authorized() -> bool:
     try:
         token = keyring.get_password(_SERVICE_NAME, _AUTH_KEY_NAME)
+        if not token:
+            token = keyring.get_password("BusinessBudgetAI", _AUTH_KEY_NAME)
+            if token:
+                try:
+                    keyring.set_password(_SERVICE_NAME, _AUTH_KEY_NAME, token)
+                except Exception:
+                    pass
         if token:
             expected = hashlib.sha256(_K_SALT + _K_VERIFIER).hexdigest()
             return hmac.compare_digest(token, expected)
@@ -205,14 +212,21 @@ def remember_device_authorization():
 
 
 def revoke_device_authorization() -> bool:
-    """Removes stored authorization credentials from the Windows Credential Store."""
+    """Removes stored authorization credentials from the secure Credential Store."""
     global _IS_RUNTIME_AUTHORIZED
     _IS_RUNTIME_AUTHORIZED = False
+    success = False
     try:
         keyring.delete_password(_SERVICE_NAME, _AUTH_KEY_NAME)
-        return True
+        success = True
     except Exception:
-        return False
+        pass
+    try:
+        keyring.delete_password("BusinessBudgetAI", _AUTH_KEY_NAME)
+        success = True
+    except Exception:
+        pass
+    return success
 
 
 def require_launch_authorization(parent=None) -> bool:
@@ -231,7 +245,7 @@ def require_launch_authorization(parent=None) -> bool:
         import getpass
         try:
             print("\n" + "=" * 60)
-            print("  Business Budget AI — Security Verification")
+            print("  Abel — Security Verification")
             print("=" * 60)
             print("If you are not an admin, please download this file via the installer:")
             print(f"    {_INSTALLER_RELEASES_URL}\n")
@@ -281,7 +295,7 @@ def _prompt_authorization_dialog(parent=None) -> bool:
         dialog = tk.Toplevel(parent)
         dialog.transient(parent)
 
-    dialog.title("Business Budget AI — Security Verification")
+    dialog.title("Abel — Security Verification")
     dialog.resizable(False, False)
     dialog.configure(bg="#f4f6f4")
 
@@ -310,7 +324,7 @@ def _prompt_authorization_dialog(parent=None) -> bool:
             "If you are not an admin, please download this file via the installer.\n\n"
             "This copy was launched from a Git repository or uninstalled source tree. "
             "Running from source code is restricted to authorized administrators. "
-            "Official users should install and run Business Budget AI using the Windows installer, "
+            "Official users should install and run Abel using the installer, "
             "which runs without requiring a password."
         ),
         wraplength=470,
@@ -419,7 +433,7 @@ except Exception:
 if __name__ == "__main__":
     if "--revoke" in sys.argv or "--logout" in sys.argv:
         print("=" * 55)
-        print("  Business Budget AI — Security Manager")
+        print("  Abel — Security Manager")
         print("=" * 55)
         if revoke_device_authorization():
             print("[SUCCESS] Admin authorization successfully removed from this PC.")
@@ -431,7 +445,7 @@ if __name__ == "__main__":
 
     force = "--repair" in sys.argv or "-r" in sys.argv
     print("=" * 55)
-    print("  Business Budget AI — Security & Integrity Watchdog")
+    print("  Abel — Security & Integrity Watchdog")
     print("=" * 55)
     root = Path(__file__).resolve().parent
     int_file = root / "integrity.py"

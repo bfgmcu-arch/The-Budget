@@ -132,11 +132,20 @@ class ShoppingApiError(RuntimeError):
 
 
 def _key_path():
-    if os.name == "nt":
+    if sys.platform == "darwin":
+        data_directory = Path.home() / "Library" / "Application Support"
+    elif os.name == "nt":
         data_directory = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
     else:
         data_directory = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
-    return data_directory / "BusinessBudgetAI" / "serpapi_key.enc"
+    target = data_directory / "Abel"
+    old = data_directory / "BusinessBudgetAI"
+    if old.exists() and not target.exists():
+        try:
+            old.rename(target)
+        except Exception:
+            return old / "serpapi_key.enc"
+    return target / "serpapi_key.enc"
 
 
 def load_api_key():
