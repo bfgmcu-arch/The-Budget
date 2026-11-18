@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import secrets
 import subprocess
+import sys
 import time
 from urllib.parse import parse_qs, urlencode, urlparse
 import webbrowser

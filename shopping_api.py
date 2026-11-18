@@ -8,6 +8,7 @@ import math
 import os
 from pathlib import Path
 import re
+import sys
 import time
 from urllib.parse import quote_plus, urljoin, urlparse
 from xml.etree import ElementTree
