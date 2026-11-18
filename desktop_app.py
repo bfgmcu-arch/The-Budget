@@ -1484,7 +1484,7 @@ def show_splash_screen(root, duration_ms: int = 2200, on_complete=None):
     splash.overrideredirect(True)
     splash.configure(bg="#18221f")
 
-    width, height = 520, 280
+    width, height = 540, 310
     sw = splash.winfo_screenwidth()
     sh = splash.winfo_screenheight()
     x = max(0, (sw - width) // 2)
@@ -1492,38 +1492,129 @@ def show_splash_screen(root, duration_ms: int = 2200, on_complete=None):
     splash.geometry(f"{width}x{height}+{x}+{y}")
     splash.attributes("-topmost", True)
 
-    card = tk.Frame(splash, bg="#18221f", highlightthickness=1, highlightbackground="#2a3833")
-    card.pack(fill="both", expand=True, padx=2, pady=2)
-
-    title_lbl = tk.Label(
-        card,
-        text="Abel",
-        font=("Segoe UI", 38, "bold"),
-        fg="#ffffff",
-        bg="#18221f"
+    canvas = tk.Canvas(
+        splash,
+        bg="#18221f",
+        highlightthickness=1,
+        highlightbackground="#2a3833",
+        width=width,
+        height=height
     )
-    title_lbl.pack(pady=(45, 4))
+    canvas.pack(fill="both", expand=True)
 
-    sub_lbl = tk.Label(
-        card,
+    # Wordmark geometry: Two figures helping each other forming the letter 'A' + 'bel'
+    cx = 222
+    baseline = 138
+    top_cap = 88
+    cross_y = 119
+
+    primary_color = "#2ec496"   # vibrant emerald
+    accent_color = "#ffffff"    # crisp white
+    glow_color = "#38ef7d"      # bright green knot
+    arch_color = "#a7f3d0"      # soft mint arch
+
+    head_r = 7.0
+
+    # 1. Left Person (White - reaching to help)
+    l_head_x = cx - 13
+    l_head_y = top_cap + 8
+    canvas.create_oval(
+        l_head_x - head_r, l_head_y - head_r,
+        l_head_x + head_r, l_head_y + head_r,
+        fill=accent_color, outline=""
+    )
+
+    # 2. Right Person (Emerald - reaching to help)
+    r_head_x = cx + 13
+    r_head_y = top_cap + 8
+    canvas.create_oval(
+        r_head_x - head_r, r_head_y - head_r,
+        r_head_x + head_r, r_head_y + head_r,
+        fill=primary_color, outline=""
+    )
+
+    stroke_w = 6
+
+    # Left body/leg
+    canvas.create_line(
+        cx - 9, top_cap + 18,
+        cx - 18, cross_y,
+        cx - 30, baseline,
+        width=stroke_w, fill=accent_color, capstyle="round", joinstyle="round"
+    )
+
+    # Right body/leg
+    canvas.create_line(
+        cx + 9, top_cap + 18,
+        cx + 18, cross_y,
+        cx + 30, baseline,
+        width=stroke_w, fill=primary_color, capstyle="round", joinstyle="round"
+    )
+
+    # Supportive apex arch connecting shoulders
+    canvas.create_line(
+        cx - 8, top_cap + 18,
+        cx, top_cap + 11,
+        cx + 8, top_cap + 18,
+        width=4, fill=arch_color, capstyle="round", joinstyle="round"
+    )
+
+    # Helping Hands Crossbar (firm clasp)
+    arm_w = 5
+    canvas.create_line(
+        cx - 16, cross_y,
+        cx + 2, cross_y,
+        width=arm_w, fill=accent_color, capstyle="round"
+    )
+    canvas.create_line(
+        cx + 16, cross_y,
+        cx - 2, cross_y,
+        width=arm_w, fill=primary_color, capstyle="round"
+    )
+
+    # Clasp knot / joined hands
+    knot_r = 4.0
+    canvas.create_oval(
+        cx - knot_r, cross_y - knot_r,
+        cx + knot_r, cross_y + knot_r,
+        fill=glow_color, outline=""
+    )
+
+    # Letters 'bel'
+    canvas.create_text(
+        cx + 44,
+        114,
+        text="bel",
+        font=("Segoe UI", 44, "bold"),
+        fill="#ffffff",
+        anchor="w"
+    )
+
+    # Subtitle: property of Student Led Business Solutions
+    canvas.create_text(
+        270,
+        185,
         text="property of Student Led Business Solutions",
         font=("Segoe UI", 11),
-        fg="#8fbdae",
-        bg="#18221f"
+        fill="#8fbdae",
+        anchor="center"
     )
-    sub_lbl.pack(pady=(0, 20))
 
-    accent = tk.Frame(card, bg="#176b52", height=2, width=160)
-    accent.pack(pady=(0, 16))
+    # Accent divider
+    canvas.create_line(
+        180, 218, 360, 218,
+        width=2, fill="#176b52"
+    )
 
-    status_lbl = tk.Label(
-        card,
+    # Status indicator
+    canvas.create_text(
+        270,
+        254,
         text="Starting Abel...",
         font=("Segoe UI", 9),
-        fg="#64776f",
-        bg="#18221f"
+        fill="#64776f",
+        anchor="center"
     )
-    status_lbl.pack(pady=(0, 25))
 
     dismissed = [False]
 
@@ -1540,10 +1631,7 @@ def show_splash_screen(root, duration_ms: int = 2200, on_complete=None):
 
     # Allow clicking or pressing a key on the splash screen to skip/dismiss
     splash.bind("<Button-1>", dismiss)
-    card.bind("<Button-1>", dismiss)
-    title_lbl.bind("<Button-1>", dismiss)
-    sub_lbl.bind("<Button-1>", dismiss)
-    status_lbl.bind("<Button-1>", dismiss)
+    canvas.bind("<Button-1>", dismiss)
     splash.bind("<Key>", dismiss)
 
     root.after(duration_ms, dismiss)

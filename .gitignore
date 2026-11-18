@@ -7,3 +7,5 @@ installer/output/
 *.enc
 *.sqlite3
 Executive_Financial_Report.html
+.vscode/
+
