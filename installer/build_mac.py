@@ -70,6 +70,10 @@ def build_mac_bundle(root_dir=None):
         else:
             print(f"Warning: file {filename} not found, skipping.")
 
+    assets_src = root_dir / "assets"
+    if assets_src.exists():
+        shutil.copytree(assets_src, resources_dir / "assets", dirs_exist_ok=True)
+
     # Generate the official installer authorization signature
     print("Generating authorized installer signature...")
     expected_sig = hmac.new(_S_KEY, _S_DATA, hashlib.sha256).hexdigest()

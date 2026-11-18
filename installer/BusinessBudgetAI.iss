@@ -14,6 +14,7 @@ DefaultGroupName={#MyAppName}
 
 OutputDir=output
 OutputBaseFilename=AbelSetup
+SetupIconFile=..\assets\abel_icon.ico
 
 Compression=lzma
 SolidCompression=yes
@@ -40,11 +41,13 @@ Source: "..\integrity.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\manifest.vault"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\start_abel.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\start_budget_ai.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\assets\abel_icon.ico"; DestDir: "{app}\assets"; Flags: ignoreversion
+Source: "..\assets\abel_logo.png"; DestDir: "{app}\assets"; Flags: ignoreversion
 Source: "setup_app.ps1"; Flags: dontcopy
 
 [Icons]
-Name: "{autodesktop}\Abel"; Filename: "{app}\start_abel.bat"
-Name: "{group}\Abel"; Filename: "{app}\start_abel.bat"
+Name: "{autodesktop}\Abel"; Filename: "{app}\start_abel.bat"; IconFilename: "{app}\assets\abel_icon.ico"
+Name: "{group}\Abel"; Filename: "{app}\start_abel.bat"; IconFilename: "{app}\assets\abel_icon.ico"
 
 [Run]
 Filename: "{app}\start_abel.bat"; \
