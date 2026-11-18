@@ -1469,11 +1469,102 @@ class BudgetApp:
         self.chat.configure(state="disabled")
 
 
+def show_splash_screen(root, duration_ms: int = 2200, on_complete=None):
+    """Displays a modern splash screen for Abel / Student Led Business Solutions."""
+    splash = tk.Toplevel(root)
+    splash.overrideredirect(True)
+    splash.configure(bg="#18221f")
+
+    width, height = 520, 280
+    sw = splash.winfo_screenwidth()
+    sh = splash.winfo_screenheight()
+    x = max(0, (sw - width) // 2)
+    y = max(0, (sh - height) // 2)
+    splash.geometry(f"{width}x{height}+{x}+{y}")
+    splash.attributes("-topmost", True)
+
+    card = tk.Frame(splash, bg="#18221f", highlightthickness=1, highlightbackground="#2a3833")
+    card.pack(fill="both", expand=True, padx=2, pady=2)
+
+    title_lbl = tk.Label(
+        card,
+        text="Abel",
+        font=("Segoe UI", 38, "bold"),
+        fg="#ffffff",
+        bg="#18221f"
+    )
+    title_lbl.pack(pady=(45, 4))
+
+    sub_lbl = tk.Label(
+        card,
+        text="property of Student Led Business Solutions",
+        font=("Segoe UI", 11),
+        fg="#8fbdae",
+        bg="#18221f"
+    )
+    sub_lbl.pack(pady=(0, 20))
+
+    accent = tk.Frame(card, bg="#176b52", height=2, width=160)
+    accent.pack(pady=(0, 16))
+
+    status_lbl = tk.Label(
+        card,
+        text="Starting Business Budget AI...",
+        font=("Segoe UI", 9),
+        fg="#64776f",
+        bg="#18221f"
+    )
+    status_lbl.pack(pady=(0, 25))
+
+    dismissed = [False]
+
+    def dismiss(_event=None):
+        if dismissed[0]:
+            return
+        dismissed[0] = True
+        try:
+            splash.destroy()
+        except Exception:
+            pass
+        if on_complete:
+            on_complete()
+
+    # Allow clicking or pressing a key on the splash screen to skip/dismiss
+    splash.bind("<Button-1>", dismiss)
+    card.bind("<Button-1>", dismiss)
+    title_lbl.bind("<Button-1>", dismiss)
+    sub_lbl.bind("<Button-1>", dismiss)
+    status_lbl.bind("<Button-1>", dismiss)
+    splash.bind("<Key>", dismiss)
+
+    root.after(duration_ms, dismiss)
+    splash.update()
+    return splash
+
+
 def main():
     if not require_launch_authorization():
         return
     root = tk.Tk()
+    root.withdraw()
+
+    # Center the main window on screen so it reveals gracefully
+    win_w, win_h = 1180, 780
+    sw = root.winfo_screenwidth()
+    sh = root.winfo_screenheight()
+    mx = max(0, (sw - win_w) // 2)
+    my = max(0, (sh - win_h) // 2)
+    root.geometry(f"{win_w}x{win_h}+{mx}+{my}")
+
+    # Build the app behind the splash screen
     BudgetApp(root)
+
+    def reveal_app():
+        root.deiconify()
+        root.lift()
+        root.focus_force()
+
+    show_splash_screen(root, duration_ms=2200, on_complete=reveal_app)
     root.mainloop()
 
 
